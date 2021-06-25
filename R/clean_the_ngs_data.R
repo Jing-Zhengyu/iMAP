@@ -25,11 +25,6 @@ contamination_condition <- function(data_ori,cutoff = 99){
   return(output)
 }
 
-#data_ori <- read_tsv("HP-7 8 9.tsv",skip = 2)
-
-#contamination_condition(data_ori, 95)
-
-
 
 #对数据中的样品进行分组，加上编号--------------------------------------------------------------
 #' Title
@@ -79,7 +74,6 @@ marc_group <- function(data_ori){   #该函数给文件中各个结果添加上�
   return(for_out)
 }
 
-#data_group <- marc_group(data_ori, first_num = 1)
 
 #看每个sgRNA在总体中所占的丰度比例------------------------------------------------------
 #' Title
@@ -129,8 +123,6 @@ percent_marc <- function(data_group, remove_grna_index = c(1,3), remove_gene = "
 
   return(new_data_f)
 }
-
-#data_per <- percent_marc(data_group, remove_grna_index = c(1:3), remove_gene = "cd47")
 
 
 #差异gRNA画图前数据整理----------------------------------------------------------------
@@ -222,8 +214,6 @@ marc_DataClean_for_plot <- function(data_nor_logfc){
   return(output)
 }
 
-#data_for_plot <- marc_DataClean_for_plot(data_nor_logfc)
-
 #添加样品信息----------------------------------------------------------------------------------------------
 #' Title
 #'
@@ -246,9 +236,6 @@ data_clean_for_analysis <- function(data_for_plot, sample_path = "./sample_info.
 
   return(new_data_f)
 }
-
-#data_for_analysis <- data_clean_for_analysis(data_for_plot)
-#data_for_analysis %>% filter(marker == 173)
 
 #在后期使用双阳来给样品进行计算对照--------------------------------------------------------------------------
 gm_mean = function(x, na.rm = TRUE, zero_propagate = T){
