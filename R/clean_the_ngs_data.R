@@ -6,15 +6,6 @@
 ###################################################
 
 #读取并计算污染情况--------------------------------------------------------------
-#' Title
-#'
-#' @param data_ori
-#' @param cutoff
-#'
-#' @return
-#' @export
-#'
-#' @examples
 contamination_condition <- function(data_ori,cutoff = 99){
   marker <- data_ori$Name[which(str_detect(data_ori$Name,"Map"))-1]
   contamination <- data.frame(index = marker,ratio =
@@ -27,14 +18,6 @@ contamination_condition <- function(data_ori,cutoff = 99){
 
 
 #对数据中的样品进行分组，加上编号--------------------------------------------------------------
-#' Title
-#'
-#' @param data_ori
-#'
-#' @return
-#' @export
-#'
-#' @examples
 marc_group <- function(data_ori){   #该函数给文件中各个结果添加上对应的序号
   for_out <- data_ori
   for_out$marker <- NA
@@ -76,16 +59,6 @@ marc_group <- function(data_ori){   #该函数给文件中各个结果添加上�
 
 
 #看每个sgRNA在总体中所占的丰度比例------------------------------------------------------
-#' Title
-#'
-#' @param data_group
-#' @param remove_grna_index
-#' @param remove_gene
-#'
-#' @return
-#' @export
-#'
-#' @examples
 percent_marc <- function(data_group, remove_grna_index = c(1,3), remove_gene = "Cd47"){
   new_data_f <- data_group[0,]
   new_data_f$percent <- 1
@@ -126,14 +99,6 @@ percent_marc <- function(data_group, remove_grna_index = c(1,3), remove_gene = "
 
 
 #差异gRNA画图前数据整理----------------------------------------------------------------
-#' Title
-#'
-#' @param gene_list
-#'
-#' @return
-#' @export
-#'
-#' @examples
 make_up_number <- function(gene_list){
   data <- data.frame(gene = gene_list, number = 1)
   gene_frame <- data.frame(gene = unique(gene_list), number = 1)
@@ -215,15 +180,6 @@ marc_DataClean_for_plot <- function(data_nor_logfc){
 }
 
 #添加样品信息----------------------------------------------------------------------------------------------
-#' Title
-#'
-#' @param data_for_plot
-#' @param sample_path
-#'
-#' @return
-#' @export
-#'
-#' @examples
 data_clean_for_analysis <- function(data_for_plot, sample_path = "./sample_info.xlsx"){
 
   new_data_f <- data_for_plot
@@ -252,63 +208,40 @@ gm_mean = function(x, na.rm = TRUE, zero_propagate = T){
   }
 }
 
-#' Title
-#'
-#' @param control_data
-#' @param strain
-#' @param first_nc_index
-#' @param sample_ratio
-#' @param y
-#'
-#' @return
-#' @export
-#'
-#' @examples
 find_nearest_sample <- function(control_data, strain, first_nc_index, sample_ratio, y){
-    #计算重组程度最相近的几个数据
-    control_first <-
-      control_data %>%
-      filter(mouse_strain == strain) %>%
-      group_by(sample, unique_num) %>%
-      summarise(first = percent[1],
-                n1 = percent[1] / percent[first_nc_index]) %>%
-      mutate(diff = abs((sample_ratio / n1) - 1)) %>%  #使用样本的比值来进行标准化使其接近1，再减一后取绝对值拿到最近似0的
-      dplyr::select(sample, first, unique_num, n1, diff) %>%
-      arrange(diff)
+  #计算重组程度最相近的几个数据
+  control_first <-
+    control_data %>%
+    filter(mouse_strain == strain, !is.na(median_reads)) %>%
+    group_by(sample, unique_num) %>%
+    summarise(first = percent[1],
+              n1 = percent[1] / percent[first_nc_index]) %>%
+    mutate(diff = abs((sample_ratio / n1) - 1)) %>%  #使用样本的比值来进行标准化使其接近1，再减一后取绝对值拿到最近似0的
+    dplyr::select(sample, first, unique_num, n1, diff) %>%
+    arrange(diff)
 
-    if(length(control_first[[1]]) == 0){ #去除没有对照的品系剩余计算步骤
-      return(NULL)
-    }
-    six_nearest_data <- control_first$unique_num[1:6]
-    within_ten <- control_first$unique_num[control_first$diff < 0.2]
-    #比较这两种哪个多就使用哪些
-    if(length(six_nearest_data) >= length(within_ten)){
-      control_index <- six_nearest_data
-    }else{
-      control_index <- within_ten
-    }
-    control_read <-
-      control_data %>%
-      filter(unique_num %in% control_index) %>%
-      group_by(Name, order) %>%
-      summarise(value = mean(get(y)),
-                percentage = mean(percent)) %>%
-      arrange(order)
+  if(length(control_first[[1]]) == 0){ #去除没有对照的品系剩余计算步骤
+    return(NULL)
+  }
+  six_nearest_data <- control_first$unique_num[1:6]
+  within_ten <- control_first$unique_num[control_first$diff < 0.2]
+  #比较这两种哪个多就使用哪些
+  if(length(six_nearest_data) >= length(within_ten)){
+    control_index <- six_nearest_data
+  }else{
+    control_index <- within_ten
+  }
+  control_read <-
+    control_data %>%
+    filter(unique_num %in% control_index) %>%
+    group_by(Name, order) %>%
+    summarise(value = mean(get(y)),
+              percentage = mean(percent)) %>%
+    arrange(order)
 
-    return(control_read)
+  return(control_read)
 }
 
-
-#' Title
-#'
-#' @param data
-#' @param control_l
-#' @param zero
-#'
-#' @return
-#' @export
-#'
-#' @examples
 normalization_with_median <-
   function(data, control_l = T, zero = F){
 
@@ -403,16 +336,6 @@ find_flanking_gRNA <- function(site, all_num, flank_num = 4, last = F){
   return(distance$order[1:flank_num])
 }
 
-
-#' Title
-#'
-#' @param data
-#' @param flank_num
-#'
-#' @return
-#' @export
-#'
-#' @examples
 normalization_with_beside <-
   function(data, flank_num = 4){
 
@@ -464,7 +387,7 @@ normalization_with_beside <-
   }
 
 
-#合并所有的数据------------------------------------------------------------------------------------------------------
+#合并所有的数据,并输出到包外----------------------------------------------------------------------------------------
 #' Title
 #'
 #' @param all_data
@@ -483,6 +406,7 @@ normalization <- function(all_data){
   print(runningtime)
   return(all_data)
 }
+
 #' Title
 #'
 #' @param all_data
@@ -493,14 +417,22 @@ normalization <- function(all_data){
 #'
 #' @examples
 formalize_gene_name <- function(all_data, control){
+  control_data <- data.frame(mouse_index = str_extract(control, "\\w?\\d*"),
+                             mouse_strain = str_extract(control, "\\d+$"))
   #添加唯一识别符号
   times <- all_data %>% mutate(temp = paste0(all_data$marker,all_data$batch)) %>% group_by(temp) %>% dplyr::count(temp)
   all_data$unique_num <- rep(1:length(unique(paste0(all_data$marker,all_data$batch))),
                              times = times$n[match(unique(paste0(all_data$marker,all_data$batch)), times$temp)])
-  all_data$cas <- case_when(
-    all_data$mouse_index %in% control ~ "no",
-    T ~ "yes"
-  )
+  #对对照添加识别信息
+  all_data$cas <- NA
+  for(strain in unique(control_data$mouse_strain)){
+    sub_control <- control_data$mouse_index[control_data$mouse_strain == strain]
+    all_data$cas[all_data$mouse_strain == strain] <- case_when(
+      all_data$mouse_index[all_data$mouse_strain == strain] %in% sub_control ~ "no",
+      T ~ "yes"
+    )
+  }
+
 
   all_data$Name <- str_replace(all_data$Name, "(?i)^pol2", "Polr2a")
   all_data$gene <- str_replace(all_data$gene, "(?i)^pol2", "Polr2a")
