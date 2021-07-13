@@ -2,6 +2,7 @@
 
 export(data_clean_for_ngs)
 export(formalize_gene_name)
+export(get_unique_num_table)
 export(line_with_control)
 export(marc_distribution_comparative)
 export(marc_distribution_inturn)

@@ -271,6 +271,16 @@ find_sample_by_regex <-
     return(output)
   }
 
+#' Title
+#'
+#' @param data_for_analysis
+#' @param mouse_index_list
+#' @param strain
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_unique_num_table <-
   function(data_for_analysis, mouse_index_list, strain){
     unique_num_output <- data.frame(exp_index = 0, con_index = 0, group = 0)[0,]
@@ -278,7 +288,7 @@ get_unique_num_table <-
     for(mouse in mouse_index_list){
       single_mouse_data <-
         data_for_analysis %>%
-        filter(mouse_index == mouse, mouse_strain == strain) %>%
+        filter(mouse_index == mouse, mouse_strain == strain, !is.na(median_reads)) %>%
         select(sample, mouse_index, unique_num) %>%
         arrange(sample)
       find_sample_by_regex(single_mouse_data, "(?i)cd4.*(?<!c)effector", "(?i)cd4.*naive",
