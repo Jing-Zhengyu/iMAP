@@ -291,8 +291,6 @@ get_unique_num_table <-
         filter(mouse_index == mouse, mouse_strain == strain, !is.na(median_reads)) %>%
         select(sample, mouse_index, unique_num) %>%
         arrange(sample)
-      find_sample_by_regex(single_mouse_data, "(?i)cd4.*(?<!c)effector", "(?i)cd4.*naive",
-                           "cd4_effector-naive", limit =  "(?i)spleen")
       #T细胞肿瘤相关--------------------------------------------------------------------------------------------
       #肿瘤中cd4 pd1阳性与阴性比较
       unique_num_output <-
@@ -319,26 +317,26 @@ get_unique_num_table <-
       #肿瘤中cd4阳性与外周naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd4.*(?<!(effector|CM))$",
-                                   "(?i)cd4.*naive(?<!tumor)$",
+              find_sample_by_regex(single_mouse_data, "(?i)cd4(?!.{0,200}?(effector|CM))",
+                                   "(?i)(?<!tumor.{0,200}?)cd4.*naive(?!.{0,200}?tumor)",
                                    "cd4_tumor-naive", except = "(?i)pd-?1"))
       #肿瘤中cd8阳性与外周naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd8.*(?<!(effector|CM))$",
-                                   "(?i)cd8.*naive(?<!tumor)$",
+              find_sample_by_regex(single_mouse_data, "(?i)cd8(?!.{0,200}?(effector|CM))",
+                                   "(?i)(?<!tumor.{0,200}?)cd8.*naive(?!.{0,200}?tumor)",
                                    "cd8_tumor-naive", except = "(?i)pd-?1"))
 
       #T细胞外周相关---------------------------------------------------------------------------------------
       #外周cd4 effector与naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd4.*(?<!c)effector", "(?i)cd4.*naive",
+              find_sample_by_regex(single_mouse_data, "(?i)cd4.*(?<!c.{0,10})effector", "(?i)cd4.*naive",
                                    "cd4_effector-naive", limit =  "(?i)spleen"))
       #外周cd8 effector与naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd8.*(?<!c)effector", "(?i)cd8.*naive",
+              find_sample_by_regex(single_mouse_data, "(?i)cd8.*(?<!c.{0,10})effector", "(?i)cd8.*naive",
                                    "cd8_effector-naive", limit =  "(?i)spleen"))
       #外周cd8 CM与naive比较
       unique_num_output <-
@@ -350,28 +348,33 @@ get_unique_num_table <-
       #tnf高表达与低表达之间比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)tnf_(p|hi).*(?<!(spleen))$", "(?i)tnf_(n|lo)",
-                                   "TNF_P-N", limit = "(?i)(F4/80_P|cd11b_P)"))
+              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)tnf_(p|hi)(?!.{0,200}?spleen)",
+                                   "(?i)tnf_(n|lo)", "TNF_P-N", limit = "(?i)(F4/80_P|cd11b_P)",
+                                   except = "(?i)spleen"))
       #INOS高表达与低表达之间比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)inos_(p|hi).*(?<!(spleen))$", "(?i)inos_(n|lo)",
-                                   "INOS_P-N", limit = "(?i)(F4/80_P|cd11b_P)"))
+              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)inos_(p|hi)(?!.{0,200}?spleen)",
+                                   "(?i)inos_(n|lo)", "INOS_P-N", limit = "(?i)(F4/80_P|cd11b_P)",
+                                   except = "(?i)spleen"))
       #arg高表达与低表达之间比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)arg1?_(p|hi).*(?<!(spleen))$", "(?i)arg1?_(n|lo)",
-                                   "ARG1_P-N", limit = "(?i)(F4/80_P|cd11b_P)"))
+              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)arg1?_(p|hi)(?!.{0,200}?spleen)",
+                                   "(?i)arg1?_(n|lo)", "ARG1_P-N", limit = "(?i)(F4/80_P|cd11b_P)",
+                                   except = "(?i)spleen"))
       #tgf高表达与低表达之间比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)tgf_(p|hi).*(?<!(spleen))$", "(?i)tgf_(n|lo)",
-                                   "TGFβ1_P-N", limit = "(?i)(F4/80_P|cd11b_P)"))
+              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)tgf_(p|hi)(?!.{0,200}?spleen)",
+                                   "(?i)tgf_(n|lo)", "TGFβ1_P-N", limit = "(?i)(F4/80_P|cd11b_P)",
+                                   except = "(?i)spleen"))
       #tnf高表达与arg1高表达之间比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)tnf_(p|hi).*(?<!(spleen))$", "(?i)arg1?_(p|hi)",
-                                   "TNF_P-ARG1_P", limit = "(?i)(F4/80_P|cd11b_P)"))
+              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)tnf_(p|hi)(?!.{0,200}?spleen)",
+                                   "(?i)arg1?_(p|hi)", "TNF_P-ARG1_P", limit = "(?i)(F4/80_P|cd11b_P)",
+                                   except = "(?i)spleen"))
       #Nk细胞-----------------------------------------------------------------------------------------------
       #cd107a高表达与低表达之间比较
       unique_num_output <-

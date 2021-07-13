@@ -399,6 +399,7 @@ normalization_with_beside <-
 normalization <- function(all_data){
   timestart <- Sys.time()
   all_data <- normalization_with_median(all_data)
+  print("Half done")
   all_data <- normalization_with_beside(all_data)
 
   timeend <- Sys.time()
