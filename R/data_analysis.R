@@ -331,12 +331,12 @@ get_unique_num_table <-
       #外周cd4 effector与naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd4.*(?<!c.{0,10})effector", "(?i)cd4.*naive",
+              find_sample_by_regex(single_mouse_data, "(?i)cd4.*(?<!cen.{0,10})effector", "(?i)cd4.*naive",
                                    "cd4_effector-naive", limit =  "(?i)spleen"))
       #外周cd8 effector与naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd8.*(?<!c.{0,10})effector", "(?i)cd8.*naive",
+              find_sample_by_regex(single_mouse_data, "(?i)cd8.*(?<!cen.{0,10})effector", "(?i)cd8.*naive",
                                    "cd8_effector-naive", limit =  "(?i)spleen"))
       #外周cd8 CM与naive比较
       unique_num_output <-
