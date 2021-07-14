@@ -154,6 +154,7 @@ marc_DataClean_for_plot <- function(data_nor_logfc){
     sub_other$type <- case_when(
       sub_other$order == 1 ~ "first gRNA",
       str_detect(sub_other$Name,"NC|Nc|GFP") ~ "control",
+      str_detect(sub_other$Name,"Polr2a") ~ "positive control",
       TRUE ~ "unknown"
     )
     sub_other$gene <- sub_other$Name
