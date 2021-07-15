@@ -112,7 +112,8 @@ generate_output_matrix <- function(ana_data = ana_data, sub_data_f = sub_data_f,
            median_medianLFC = NA_real_, median_ratioLFC = NA_real_, sd_ratioLFC = 0,
            order = 0, sample_num = "", sample_reads = NA_character_,
            control_reads = NA_character_, reads_without_cas = NA_character_,
-           trend = NA_character_, sample = NA_character_)
+           trend = NA_character_, sample = NA_character_, worked_mice = NA_character_,
+           unique_num = NA_character_)
 
   i <- 1
   for (f in list(up_grna, down_grna)) {
@@ -163,6 +164,9 @@ generate_output_matrix <- function(ana_data = ana_data, sub_data_f = sub_data_f,
           summarise(paste0("more: ", up_num, "; lesser: ", down_num))
 
         table_collected[i,"sample"] <- temp_data_f %>% summarise(sample = paste0(ana_vs_con, collapse = "; "))
+
+        table_collected[i,"worked_mice"] <-
+          paste0(unlist(str_extract_all(temp_data_f$ana_vs_con, "^\\w?\\d+")), collapse = "; ")
 
         table_collected[i,"unique_num"] <- temp_data_f %>% summarise(sample = paste0(num_for_view, collapse = "; "))
 
@@ -305,25 +309,25 @@ get_unique_num_table <-
       #肿瘤中cd4 pd1阳性与外周naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd4.*pd-?1_(p|hi)", "(?i)cd4.*naive",
-                                   "cd4_pd-1P-naive", limit =  "(?i)tumor"))
+              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)cd4.*pd-?1_(p|hi)(?!.{0,200}?spleen)",
+                                   "(?i)cd4.*naive", "cd4_pd-1P-naive"))
       #肿瘤中cd8 pd1阳性与外周naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd8.*pd-?1_(p|hi)", "(?i)cd8.*naive",
-                                   "cd8_pd-1P-naive", limit =  "(?i)tumor"))
+              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)cd8.*pd-?1_(p|hi)(?!.{0,200}?spleen)",
+                                   "(?i)cd8.*naive", "cd8_pd-1P-naive"))
 
       #肿瘤中但并未细分pd1的情况---------------------------------------------------------------------------
       #肿瘤中cd4阳性与外周naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<=tumor.{0,200}?)cd4(?=.{0,200}?(tumor))",
+              find_sample_by_regex(single_mouse_data, "(?i)(?<=tumor.{0,200}?)cd4|cd4(?=.{0,200}?(tumor))",
                                    "(?i)(?<!tumor.{0,200}?)cd4.*naive(?!.{0,200}?tumor)",
                                    "cd4_tumor-naive", except = "(?i)pd-?1"))
       #肿瘤中cd8阳性与外周naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<=tumor.{0,200}?)cd8(?=.{0,200}?(tumor))",
+              find_sample_by_regex(single_mouse_data, "(?i)(?<=tumor.{0,200}?)cd8|cd8(?=.{0,200}?(tumor))",
                                    "(?i)(?<!tumor.{0,200}?)cd8.*naive(?!.{0,200}?tumor)",
                                    "cd8_tumor-naive", except = "(?i)pd-?1"))
 
