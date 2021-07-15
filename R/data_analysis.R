@@ -317,13 +317,13 @@ get_unique_num_table <-
       #肿瘤中cd4阳性与外周naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd4(?!.{0,200}?(effector|CM))",
+              find_sample_by_regex(single_mouse_data, "(?i)(?<=tumor.{0,200}?)cd4(?=.{0,200}?(tumor))",
                                    "(?i)(?<!tumor.{0,200}?)cd4.*naive(?!.{0,200}?tumor)",
                                    "cd4_tumor-naive", except = "(?i)pd-?1"))
       #肿瘤中cd8阳性与外周naive比较
       unique_num_output <-
         rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd8(?!.{0,200}?(effector|CM))",
+              find_sample_by_regex(single_mouse_data, "(?i)(?<=tumor.{0,200}?)cd8(?=.{0,200}?(tumor))",
                                    "(?i)(?<!tumor.{0,200}?)cd8.*naive(?!.{0,200}?tumor)",
                                    "cd8_tumor-naive", except = "(?i)pd-?1"))
 
