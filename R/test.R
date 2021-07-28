@@ -1,22 +1,97 @@
-unique_info_1913 <-
-  get_unique_num_table(data_for_analysis,
-                       c("K221", "K226", "K222", "K219", "K134", "K291", "K141", "K273", "K278",
-                         "K308", "K140", "K129", "G85", "G206", "K52", "K65", "K67"), 1913)
-tcell_1913 <-
-  variational_grna_specified_sample_batch(data_for_analysis, remove_grna = "Cd47",
-                                          unique_num_info = unique_info_1913,
-                                          up_lfc = 0.7, down_lfc = -0.7)
+#' Title
+#'
+#' @param data_for_analysis
+#' @param mouse_index_list
+#' @param strain
+#'
+#' @return
+#' @export
+#'
+#' @examples
+get_unique_num_table <-
+  function(data_for_analysis, mouse_index_list, strain, search_table = NULL){
+    unique_num_output <- data.frame(exp_index = 0, con_index = 0, group = 0)[0,]
 
+    if(is.null(search_table)){
+      search_table <-
+        tibble::tribble(
+          ~first_sample, ~second_sample, ~lable, ~limit, ~except,
+          #肿瘤中cd4 pd1阳性与阴性比较
+          "(?i)cd4.*pd-?1_(p|hi)", "(?i)cd4.*pd-?1_(n|lo)", "cd4_pd-1P-N", "(?i)tumor", NULL,
+          #肿瘤中cd8 pd1阳性与阴性比较
+          "(?i)cd8.*pd-?1_(p|hi)", "(?i)cd8.*pd-?1_(n|lo)", "cd8_pd-1P-N", "(?i)tumor", NULL,
+          #肿瘤中cd4 pd1阳性与外周naive比较
+          "(?i)(?<!spleen.{0,200}?)cd4.*pd-?1_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)cd4.*naive", "cd4_pd-1P-naive", NULL, NULL,
+          #肿瘤中cd8 pd1阳性与外周naive比较
+          "(?i)(?<!spleen.{0,200}?)cd8.*pd-?1_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)cd8.*naive", "cd8_pd-1P-naive", NULL, NULL,
+          #cd8细胞的TNF等分泌物
+          "(?i)tnf_(p|hi)", "(?i)tnf_(n|lo)", "cd8-TNF_P-N", "(?i)cd8", NULL,
+          #cd8细胞的107a等分泌物
+          "(?i)cd107a_(p|hi)", "(?i)cd107a_(n|lo)", "cd8-cd107a_P-N", "(?i)cd8", NULL,
+          #肿瘤中cd4阳性与外周naive比较
+          "(?i)(?<=tumor.{0,200}?)cd4|cd4(?=.{0,200}?(tumor))",
+          "(?i)(?<!tumor.{0,200}?)cd4.*naive(?!.{0,200}?tumor)",
+          "cd4_tumor-naive", NULL, "(?i)pd-?1",
+          #肿瘤中cd8阳性与外周naive比较
+          "(?i)(?<=tumor.{0,200}?)cd8|cd8(?=.{0,200}?(tumor))",
+          "(?i)(?<!tumor.{0,200}?)cd8.*naive(?!.{0,200}?tumor)",
+          "cd8_tumor-naive", NULL, "(?i)pd-?1",
+          #外周cd4 effector与naive比较
+          "(?i)cd4.*(?<!cen.{0,10})effector", "(?i)cd4.*naive",
+          "cd4_effector-naive", NULL, "(?i)spleen",
+          #外周cd8 effector与naive比较
+          "(?i)cd8.*(?<!cen.{0,10})effector", "(?i)cd8.*naive", "cd8_effector-naive", "(?i)spleen", NULL,
+          #外周cd8 CM与naive比较
+          "(?i)cd8.*(CM|central)", "(?i)cd8.*naive", "cd8_CM-naive", "(?i)spleen", NULL,
+          #巨噬细胞里tnf高表达与低表达之间比较
+          "(?i)(?<!spleen.{0,200}?)tnf_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)tnf_(n|lo)", "MAC_TNF_P-N", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          #巨噬细胞里INOS高表达与低表达之间比较
+          "(?i)(?<!spleen.{0,200}?)inos_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)inos_(n|lo)", "MAC_INOS_P-N", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          #巨噬细胞里arg高表达与低表达之间比较
+          "(?i)(?<!spleen.{0,200}?)arg1?_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)arg1?_(n|lo)", "MAC_ARG1_P-N", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          #巨噬细胞里tgf高表达与低表达之间比较
+          "(?i)(?<!spleen.{0,200}?)tgf_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)tgf_(n|lo)", "MAC_TGFβ1_P-N", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          #巨噬细胞里tnf高表达与arg1高表达之间比较
+          "(?i)(?<!spleen.{0,200}?)tnf_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)arg1?_(p|hi)", "TNF_P-ARG1_P", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          #nk中cd107a高表达与低表达之间比较
+          "(?i)cd107a_(p|hi)", "(?i)cd107a_(n|lo)", "nk-cd107a_P-N", "(?i)NK", NULL,
+          #nk中tnf高表达与低表达之间比较
+          "(?i)tnf_(p|hi)", "(?i)tnf_(n|lo)", "NK_TNF_P-N", "(?i)NK", NULL
+        )
+      search_table[4] <- as.character(search_table[[4]])
+      search_table[5] <- as.character(search_table[[5]])
+      search_table <- as.data.frame(search_table)
+    }
 
+    for(mouse in mouse_index_list){
+      single_mouse_data <-
+        data_for_analysis %>%
+        filter(mouse_index == mouse, mouse_strain == strain, !is.na(median_reads)) %>%
+        select(sample, mouse_index, unique_num) %>%
+        arrange(sample)
+      #各老鼠中循环查找表中信息
+      for(i in 1:dim(search_table)[1]){
 
+        unique_num_output <-
+          rbind(unique_num_output,
+                find_sample_by_regex(single_mouse_data, search_table[i, 1], search_table[i, 2],
+                                     search_table[i, 3], limit = search_table[i, 4], except = search_table[i, 5]
+                )
+          )
+      }
+    }
 
+    unique_num_output <-
+      unique_num_output %>%
+      dplyr::filter(!is.na(exp_index), !is.na(con_index)) %>%
+      arrange(group)
 
-single_mouse_data <- data_for_analysis %>%
-       dplyr::filter(mouse_index == "K273", !is.na(median_reads)) %>%
-       dplyr::select(sample, mouse_index, unique_num) %>%
-       arrange(sample)
-
-
-find_sample_by_regex(single_mouse_data, "(?i)tnf_(p|hi)", "(?i)tnf_(n|lo)",
-                     "NK_TNF_P-N", limit = "(?i)NK", except = NULL
-)
+    return(unique_num_output)
+  }
