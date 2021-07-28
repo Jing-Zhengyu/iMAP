@@ -4,7 +4,12 @@
 \alias{get_unique_num_table}
 \title{Title}
 \usage{
-get_unique_num_table(data_for_analysis, mouse_index_list, strain)
+get_unique_num_table(
+  data_for_analysis,
+  mouse_index_list,
+  strain,
+  search_table = NULL
+)
 }
 \arguments{
 \item{strain}{}

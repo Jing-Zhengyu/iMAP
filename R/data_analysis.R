@@ -11,12 +11,12 @@ extract_samples <- function(data_for_analysis, samples_info = NULL, unique_num_i
     for (i in 1:dim(samples_info)[[1]]) {
       unique_num_info[i, 1] <-
         data_for_analysis %>%
-        filter(batch == samples_info[i, 1], marker == samples_info[i, 2], order == 1) %>%
+        dplyr::filter(batch == samples_info[i, 1], marker == samples_info[i, 2], order == 1) %>%
         select(unique_num)
 
       unique_num_info[i,2] <-
         data_for_analysis %>%
-        filter(batch == samples_info[i, 3], marker == samples_info[i, 4], order == 1) %>%
+        dplyr::filter(batch == samples_info[i, 3], marker == samples_info[i, 4], order == 1) %>%
         select(unique_num)
 
       unique_num_info[i, 3] <- samples_info[i, 5]
@@ -28,13 +28,13 @@ extract_samples <- function(data_for_analysis, samples_info = NULL, unique_num_i
     #将等下分析作为分子的样本放进去
     temp_df <-
       data_for_analysis %>%
-      filter(unique_num == unique_num_info[i, 1]) %>%
+      dplyr::filter(unique_num == unique_num_info[i, 1]) %>%
       mutate(group = unique_num_info[i, 3], numerator = "yes")
     out_data <- rbind(out_data, temp_df)
     #将等下分析作为分母的样本放进去
     temp_df <-
       data_for_analysis %>%
-      filter(unique_num == unique_num_info[i, 2]) %>%
+      dplyr::filter(unique_num == unique_num_info[i, 2]) %>%
       mutate(group = unique_num_info[i, 3], numerator = "no")
     out_data <- rbind(out_data, temp_df)
   }
@@ -45,15 +45,15 @@ calculation_of_threshold <- function(sub_data_f = sub_data_f, top = top, up_lfc 
   sub_data_f <- sub_data_f %>% group_by(Name) %>% mutate(up_num = sum(lfc >= 0), down_num = sum(lfc < 0))
 
   if(is.null(top)){
-    up_grna <- sub_data_f %>% filter(lfc > up_lfc)
-    down_grna <- sub_data_f %>% filter(lfc < down_lfc)
+    up_grna <- sub_data_f %>% dplyr::filter(lfc > up_lfc)
+    down_grna <- sub_data_f %>% dplyr::filter(lfc < down_lfc)
 
     up_grna %<>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
     down_grna %<>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
   }else{
-    up_grna <- sub_data_f %>% group_by(sample) %>% filter(lfc >
+    up_grna <- sub_data_f %>% group_by(sample) %>% dplyr::filter(lfc >
                                                             quantile(lfc, 1-top, na.rm = T))
-    down_grna <- sub_data_f %>% group_by(sample) %>% filter(lfc <
+    down_grna <- sub_data_f %>% group_by(sample) %>% dplyr::filter(lfc <
                                                               quantile(lfc, top, na.rm = T))
 
     up_grna %<>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
@@ -121,8 +121,8 @@ generate_output_matrix <- function(ana_data = ana_data, sub_data_f = sub_data_f,
     for (name in f$Name) {
       if(!name %in% grna_list & name %in% passed_list){
         #对列表开始填充
-        temp_data_f <- f %>% filter(Name == name) %>% ungroup()
-        other_temp <- ana_data %>% filter(Name == name) %>% ungroup()
+        temp_data_f <- f %>% dplyr::filter(Name == name) %>% ungroup()
+        other_temp <- ana_data %>% dplyr::filter(Name == name) %>% ungroup()
 
         table_collected[i,"Name"] <- name
 
@@ -160,7 +160,7 @@ generate_output_matrix <- function(ana_data = ana_data, sub_data_f = sub_data_f,
 
         table_collected[i,"trend"] <-
           temp_data_f %>%
-          filter(order(unique_num) == 1) %>%
+          dplyr::filter(order(unique_num) == 1) %>%
           summarise(paste0("more: ", up_num, "; lesser: ", down_num))
 
         table_collected[i,"sample"] <- temp_data_f %>% summarise(sample = paste0(ana_vs_con, collapse = "; "))
@@ -189,7 +189,7 @@ variational_grna_specified_sample <-
     con_data <- data_for_analysis[0,]
     sub_data_f <- data_for_analysis[0,]
     if(remove_nc){
-      data_for_analysis <- data_for_analysis %>% filter(type != "control")
+      data_for_analysis <- data_for_analysis %>% dplyr::filter(type != "control")
     }
 
     #计算惰性的参数
@@ -215,7 +215,7 @@ variational_grna_specified_sample <-
     #如果有key就把带有key的提取出来
     if(!is.null(keys)){
       for(key in keys){
-        temp_data_f <- ana_data %>% filter(mouse_strain == line,
+        temp_data_f <- ana_data %>% dplyr::filter(mouse_strain == line,
                                            str_detect(ana_vs_con,regex(key, ignore_case = T)))
         sub_data_f <- rbind(sub_data_f,temp_data_f)
       }
@@ -224,7 +224,7 @@ variational_grna_specified_sample <-
     }
 
     #对reads较低的进行一次过滤
-    filter_determination <- data_for_analysis %>% filter(unique_num %in% c(ana$unique_num, con$unique_num))
+    filter_determination <- data_for_analysis %>% dplyr::filter(unique_num %in% c(ana$unique_num, con$unique_num))
     temp_sum <- filter_determination %>% group_by(Name) %>% summarise(n = sum(NumReads > min_reads))
     passed_list <- temp_sum$Name[temp_sum$n >=  min_sample] %>% as.character()
 
@@ -252,10 +252,10 @@ variational_grna_specified_sample <-
 find_sample_by_regex <-
   function(single_mouse_data, exp_regex, con_regex, group, limit = NULL, except = NULL){
     if(!is.null(limit)){
-      single_mouse_data <- single_mouse_data %>% filter(str_detect(sample, limit))
+      single_mouse_data <- single_mouse_data %>% dplyr::filter(str_detect(sample, limit))
     }
     if(!is.null(except)){
-      single_mouse_data <- single_mouse_data %>% filter(!str_detect(sample, except))
+      single_mouse_data <- single_mouse_data %>% dplyr::filter(!str_detect(sample, except))
     }
 
     output <- data.frame(exp_index = 0, con_index = 0, group = 0)
@@ -286,110 +286,88 @@ find_sample_by_regex <-
 #'
 #' @examples
 get_unique_num_table <-
-  function(data_for_analysis, mouse_index_list, strain){
+  function(data_for_analysis, mouse_index_list, strain, search_table = NULL){
     unique_num_output <- data.frame(exp_index = 0, con_index = 0, group = 0)[0,]
+
+    if(is.null(search_table)){
+      search_table <-
+        tibble::tribble(
+          ~first_sample, ~second_sample, ~lable, ~limit, ~except,
+          #肿瘤中cd4 pd1阳性与阴性比较
+          "(?i)cd4.*pd-?1_(p|hi)", "(?i)cd4.*pd-?1_(n|lo)", "cd4_pd-1P-N", "(?i)tumor", NULL,
+          #肿瘤中cd8 pd1阳性与阴性比较
+          "(?i)cd8.*pd-?1_(p|hi)", "(?i)cd8.*pd-?1_(n|lo)", "cd8_pd-1P-N", "(?i)tumor", NULL,
+          #肿瘤中cd4 pd1阳性与外周naive比较
+          "(?i)(?<!spleen.{0,200}?)cd4.*pd-?1_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)cd4.*naive", "cd4_pd-1P-naive", NULL, NULL,
+          #肿瘤中cd8 pd1阳性与外周naive比较
+          "(?i)(?<!spleen.{0,200}?)cd8.*pd-?1_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)cd8.*naive", "cd8_pd-1P-naive", NULL, NULL,
+          #cd8细胞的TNF等分泌物
+          "(?i)tnf_(p|hi)", "(?i)tnf_(n|lo)", "cd8-TNF_P-N", "(?i)cd8", NULL,
+          #cd8细胞的107a等分泌物
+          "(?i)cd107a_(p|hi)", "(?i)cd107a_(n|lo)", "cd8-cd107a_P-N", "(?i)cd8", NULL,
+          #肿瘤中cd4阳性与外周naive比较
+          "(?i)(?<=tumor.{0,200}?)cd4|cd4(?=.{0,200}?(tumor))",
+          "(?i)(?<!tumor.{0,200}?)cd4.*naive(?!.{0,200}?tumor)",
+          "cd4_tumor-naive", NULL, "(?i)pd-?1",
+          #肿瘤中cd8阳性与外周naive比较
+          "(?i)(?<=tumor.{0,200}?)cd8|cd8(?=.{0,200}?(tumor))",
+          "(?i)(?<!tumor.{0,200}?)cd8.*naive(?!.{0,200}?tumor)",
+          "cd8_tumor-naive", NULL, "(?i)pd-?1",
+          #外周cd4 effector与naive比较
+          "(?i)cd4.*(?<!cen.{0,10})effector", "(?i)cd4.*naive",
+          "cd4_effector-naive", NULL, "(?i)spleen",
+          #外周cd8 effector与naive比较
+          "(?i)cd8.*(?<!cen.{0,10})effector", "(?i)cd8.*naive", "cd8_effector-naive", "(?i)spleen", NULL,
+          #外周cd8 CM与naive比较
+          "(?i)cd8.*(CM|central)", "(?i)cd8.*naive", "cd8_CM-naive", "(?i)spleen", NULL,
+          #巨噬细胞里tnf高表达与低表达之间比较
+          "(?i)(?<!spleen.{0,200}?)tnf_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)tnf_(n|lo)", "MAC_TNF_P-N", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          #巨噬细胞里INOS高表达与低表达之间比较
+          "(?i)(?<!spleen.{0,200}?)inos_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)inos_(n|lo)", "MAC_INOS_P-N", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          #巨噬细胞里arg高表达与低表达之间比较
+          "(?i)(?<!spleen.{0,200}?)arg1?_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)arg1?_(n|lo)", "MAC_ARG1_P-N", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          #巨噬细胞里tgf高表达与低表达之间比较
+          "(?i)(?<!spleen.{0,200}?)tgf_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)tgf_(n|lo)", "MAC_TGFβ1_P-N", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          #巨噬细胞里tnf高表达与arg1高表达之间比较
+          "(?i)(?<!spleen.{0,200}?)tnf_(p|hi)(?!.{0,200}?spleen)",
+          "(?i)arg1?_(p|hi)", "TNF_P-ARG1_P", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          #nk中cd107a高表达与低表达之间比较
+          "(?i)cd107a_(p|hi)", "(?i)cd107a_(n|lo)", "nk-cd107a_P-N", "(?i)NK", NULL,
+          #nk中tnf高表达与低表达之间比较
+          "(?i)tnf_(p|hi)", "(?i)tnf_(n|lo)", "NK_TNF_P-N", "(?i)NK", NULL
+        )
+      search_table[4] <- as.character(search_table[[4]])
+      search_table[5] <- as.character(search_table[[5]])
+      search_table <- as.data.frame(search_table)
+    }
 
     for(mouse in mouse_index_list){
       single_mouse_data <-
         data_for_analysis %>%
-        filter(mouse_index == mouse, mouse_strain == strain, !is.na(median_reads)) %>%
-        select(sample, mouse_index, unique_num) %>%
+        dplyr::filter(mouse_index == mouse, mouse_strain == strain, !is.na(median_reads)) %>%
+        dplyr::select(sample, mouse_index, unique_num) %>%
         arrange(sample)
-      #T细胞肿瘤相关--------------------------------------------------------------------------------------------
-      #肿瘤中cd4 pd1阳性与阴性比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd4.*pd-?1_(p|hi)", "(?i)cd4.*pd-?1_(n|lo)",
-                                   "cd4_pd-1P-N", limit = "(?i)tumor"))
-      #肿瘤中cd8 pd1阳性与阴性比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd8.*pd-?1_(p|hi)", "(?i)cd8.*pd-?1_(n|lo)",
-                                   "cd8_pd-1P-N", limit =  "(?i)tumor"))
-      #肿瘤中cd4 pd1阳性与外周naive比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)cd4.*pd-?1_(p|hi)(?!.{0,200}?spleen)",
-                                   "(?i)cd4.*naive", "cd4_pd-1P-naive"))
-      #肿瘤中cd8 pd1阳性与外周naive比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)cd8.*pd-?1_(p|hi)(?!.{0,200}?spleen)",
-                                   "(?i)cd8.*naive", "cd8_pd-1P-naive"))
+      #各老鼠中循环查找表中信息
+      for(i in 1:dim(search_table)[1]){
 
-      #肿瘤中但并未细分pd1的情况---------------------------------------------------------------------------
-      #肿瘤中cd4阳性与外周naive比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<=tumor.{0,200}?)cd4|cd4(?=.{0,200}?(tumor))",
-                                   "(?i)(?<!tumor.{0,200}?)cd4.*naive(?!.{0,200}?tumor)",
-                                   "cd4_tumor-naive", except = "(?i)pd-?1"))
-      #肿瘤中cd8阳性与外周naive比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<=tumor.{0,200}?)cd8|cd8(?=.{0,200}?(tumor))",
-                                   "(?i)(?<!tumor.{0,200}?)cd8.*naive(?!.{0,200}?tumor)",
-                                   "cd8_tumor-naive", except = "(?i)pd-?1"))
-
-      #T细胞外周相关---------------------------------------------------------------------------------------
-      #外周cd4 effector与naive比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd4.*(?<!cen.{0,10})effector", "(?i)cd4.*naive",
-                                   "cd4_effector-naive", limit =  "(?i)spleen"))
-      #外周cd8 effector与naive比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd8.*(?<!cen.{0,10})effector", "(?i)cd8.*naive",
-                                   "cd8_effector-naive", limit =  "(?i)spleen"))
-      #外周cd8 CM与naive比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd8.*(CM|central)", "(?i)cd8.*naive",
-                                   "cd8_CM-naive", limit =  "(?i)spleen"))
-
-      #肿瘤中巨噬细胞相关---------------------------------------------------------------------------------------
-      #tnf高表达与低表达之间比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)tnf_(p|hi)(?!.{0,200}?spleen)",
-                                   "(?i)tnf_(n|lo)", "TNF_P-N", limit = "(?i)(F4/80_P|cd11b_P)",
-                                   except = "(?i)spleen"))
-      #INOS高表达与低表达之间比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)inos_(p|hi)(?!.{0,200}?spleen)",
-                                   "(?i)inos_(n|lo)", "INOS_P-N", limit = "(?i)(F4/80_P|cd11b_P)",
-                                   except = "(?i)spleen"))
-      #arg高表达与低表达之间比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)arg1?_(p|hi)(?!.{0,200}?spleen)",
-                                   "(?i)arg1?_(n|lo)", "ARG1_P-N", limit = "(?i)(F4/80_P|cd11b_P)",
-                                   except = "(?i)spleen"))
-      #tgf高表达与低表达之间比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)tgf_(p|hi)(?!.{0,200}?spleen)",
-                                   "(?i)tgf_(n|lo)", "TGFβ1_P-N", limit = "(?i)(F4/80_P|cd11b_P)",
-                                   except = "(?i)spleen"))
-      #tnf高表达与arg1高表达之间比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)(?<!spleen.{0,200}?)tnf_(p|hi)(?!.{0,200}?spleen)",
-                                   "(?i)arg1?_(p|hi)", "TNF_P-ARG1_P", limit = "(?i)(F4/80_P|cd11b_P)",
-                                   except = "(?i)spleen"))
-      #Nk细胞-----------------------------------------------------------------------------------------------
-      #cd107a高表达与低表达之间比较
-      unique_num_output <-
-        rbind(unique_num_output,
-              find_sample_by_regex(single_mouse_data, "(?i)cd107a_hi", "(?i)cd107a_lo",
-                                   "cd107a_P-N"))
+        unique_num_output <-
+          rbind(unique_num_output,
+                find_sample_by_regex(single_mouse_data, search_table[i, 1], search_table[i, 2],
+                                     search_table[i, 3], limit = search_table[i, 4], except = search_table[i, 5]
+                )
+          )
+      }
     }
 
     unique_num_output <-
       unique_num_output %>%
-      filter(!is.na(exp_index), !is.na(con_index)) %>%
+      dplyr::filter(!is.na(exp_index), !is.na(con_index)) %>%
       arrange(group)
 
     return(unique_num_output)
@@ -421,7 +399,7 @@ variational_grna_specified_sample_batch <-
     all_for_compare_data <-
       extract_samples(data_for_analysis, samples_info = samples_info,
                       unique_num_info = unique_num_info)
-    data_for_analysis <- data_for_analysis %>% filter(!Name %in% remove_grna)
+    data_for_analysis <- data_for_analysis %>% dplyr::filter(!Name %in% remove_grna)
     i = 1
 
     for(group_num in sort(unique(all_for_compare_data$group))){
@@ -444,4 +422,5 @@ variational_grna_specified_sample_batch <-
     }
     return(all_results)
   }
+
 
