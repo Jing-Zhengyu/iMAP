@@ -102,9 +102,9 @@ get_unique_num_table <-
           "(?i)tgf_(n|lo)", "MAC_TGFβ1_P-N", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
           #巨噬细胞里tnf高表达与arg1高表达之间比较
           "(?i)(?<!spleen.{0,200}?)tnf_(p|hi)(?!.{0,200}?spleen)",
-          "(?i)arg1?_(p|hi)", "TNF_P-ARG1_P", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
+          "(?i)arg1?_(p|hi)", "MAC_TNF_P-ARG1_P", "(?i)(F4/80_P|cd11b_P)", "(?i)spleen",
           #nk中cd107a高表达与低表达之间比较
-          "(?i)cd107a_(p|hi)", "(?i)cd107a_(n|lo)", "nk-cd107a_P-N", "(?i)NK", NULL,
+          "(?i)cd107a_(p|hi)", "(?i)cd107a_(n|lo)", "NK-cd107a_P-N", "(?i)NK", NULL,
           #nk中tnf高表达与低表达之间比较
           "(?i)tnf_(p|hi)", "(?i)tnf_(n|lo)", "NK_TNF_P-N", "(?i)NK", NULL
         )
