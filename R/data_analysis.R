@@ -106,7 +106,9 @@ get_unique_num_table <-
           #nk中cd107a高表达与低表达之间比较
           "(?i)cd107a_(p|hi)", "(?i)cd107a_(n|lo)", "NK-cd107a_P-N", "(?i)NK", NULL,
           #nk中tnf高表达与低表达之间比较
-          "(?i)tnf_(p|hi)", "(?i)tnf_(n|lo)", "NK_TNF_P-N", "(?i)NK", NULL
+          "(?i)tnf_(p|hi)", "(?i)tnf_(n|lo)", "NK_TNF_P-N", "(?i)NK", NULL,
+          #nk中pd1阳性与阴性之间比较
+          "(?i)nk.*pd-?1_(p|hi)", "(?i)nk.*pd-?1_(n|lo)", "nk_pd-1P-N", NULL, NULL
         )
       search_table[4] <- as.character(search_table[[4]])
       search_table[5] <- as.character(search_table[[5]])
