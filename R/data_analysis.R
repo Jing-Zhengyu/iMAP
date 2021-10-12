@@ -83,7 +83,7 @@ get_unique_num_table <-
           "cd8_tumor-naive", NULL, "(?i)pd-?1",
           #外周cd4 effector与naive比较
           "(?i)cd4.*(?<!cen.{0,10})effector", "(?i)cd4.*naive",
-          "cd4_effector-naive", NULL, "(?i)spleen",
+          "cd4_effector-naive", "(?i)spleen|ln", NULL,
           #外周cd8 effector与naive比较
           "(?i)cd8.*(?<!cen.{0,10})effector", "(?i)cd8.*naive", "cd8_effector-naive", "(?i)spleen", NULL,
           #外周cd8 CM与naive比较
@@ -108,7 +108,7 @@ get_unique_num_table <-
           #nk中tnf高表达与低表达之间比较
           "(?i)tnf_(p|hi)", "(?i)tnf_(n|lo)", "NK_TNF_P-N", "(?i)NK", NULL,
           #nk中pd1阳性与阴性之间比较
-          "(?i)nk.*pd-?1_(p|hi)", "(?i)nk.*pd-?1_(n|lo)", "nk_pd-1P-N", NULL, NULL
+          "(?i)pd.?1_(p|hi)", "(?i)pd.?1_(n|lo)", "NK_pd-1P-N", "(?i)NK", NULL
         )
       search_table[4] <- as.character(search_table[[4]])
       search_table[5] <- as.character(search_table[[5]])
