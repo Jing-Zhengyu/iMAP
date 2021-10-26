@@ -10,7 +10,7 @@
 #'
 #' @examples
 marc_distribution_inturn <-
-  function(data_for_analysis, plot_index, grna_index = 2:100, smooth = F){
+  function(data_for_analysis, plot_index, grna_index = 2:100, smooth = F, highlight = NULL){
 
     s <- geom_smooth(aes(group = 1),size = 0.8,color = "#BE9063",span = 0.22,se = F)
 
@@ -32,7 +32,17 @@ marc_distribution_inturn <-
         }else{
           p1 <- p
         }
-        print(p1)
+
+        #是否有标记gRNA
+        if(!is.null(highlight)){
+          p2 <-
+            p1 +
+            geom_bar(data = filter(data_for_plot, Name %in% highlight),
+                     aes(Name,percent), stat = "identity", fill = "#f2317f", color = "black")
+        }else{
+          p2 <- p1
+        }
+        print(p2)
       }
     }
   }

@@ -440,6 +440,8 @@ formalize_gene_name <- function(all_data, control){
   all_data$gene <- str_replace(all_data$gene, "(?i)^pol2", "Polr2a")
   all_data$Name <- str_replace(all_data$Name, "(?i)^p53", "Tp53")
   all_data$gene <- str_replace(all_data$gene, "(?i)^p53", "Tp53")
+  all_data$Name <- str_replace(all_data$Name, "(?i)^CD19", "Cd19")
+  all_data$gene <- str_replace(all_data$gene, "(?i)^CD19", "Cd19")
 
   all_data$Name <- paste(toupper(substr(all_data$Name, 1, 1)), substr(all_data$Name, 2, 50), sep="")
   all_data$gene <- paste(toupper(substr(all_data$gene, 1, 1)), substr(all_data$gene, 2, 50), sep="")
