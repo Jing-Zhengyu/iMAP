@@ -480,6 +480,41 @@ data_clean_for_ngs <- function(name, sample_path = "./sample_info.xlsx"){
   return(data_for_analysis)
 }
 
+#' Title
+#'
+#' @param data
+#'
+#' @return
+#' @export
+#'
+#' @examples
+add_snr <- function(data){
+  data$SNR <- NA
+  #添加进度条
+  i <- 1
+  pd <- txtProgressBar(style = 3)
+  for(uid in unique(data$unique_num)){
+    single_data <- dplyr::filter(data, unique_num == uid)
 
+    data_stat <-
+      single_data %>%
+      dplyr::filter(type == "control", !str_detect(gene, "(?i)cd45")) %>%
+      group_by(Name) %>%
+      summarise(fc = mean(median_FC))
+    n_noise_log <- max(2^abs(log2(data_stat$fc + 1e-8)) - 1)
+    snr <- (2^abs(log2(single_data$median_FC + 1e-8)) - 1) / n_noise_log
+
+    data$SNR[data$unique_num == uid] <- snr
+
+    #进度条本体
+    setTxtProgressBar(pd, i / length(unique(data$unique_num)))
+    i <- i + 1
+  }
+
+  index <- which(colnames(data) == "control_reads") - 1
+  length_col <- ncol(data)
+  close(pd)
+  return(data[c(1:index, length_col, (index+1):(length_col-1))])
+}
 
 

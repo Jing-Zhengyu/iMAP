@@ -8,7 +8,8 @@ marc_distribution_inturn(
   data_for_analysis,
   plot_index,
   grna_index = 2:100,
-  smooth = F
+  smooth = F,
+  highlight = NULL
 )
 }
 \arguments{
