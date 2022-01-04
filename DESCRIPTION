@@ -1,6 +1,6 @@
 Package: MARC
 Title: Analysis and Visualization of MARC's Results
-Version: 0.2.0.00
+Version: 0.2.0.10
 Authors@R: 
     person(given = "First",
            family = "Last",
