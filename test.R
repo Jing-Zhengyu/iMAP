@@ -37,3 +37,13 @@ tcell_1610 <-
   variational_grna_specified_sample_batch(immune_data, remove_grna = "Cd47",
                                           unique_num_info = info_1610,
                                           up_lfc = 0.5, down_lfc = -0.5)
+
+
+
+# 重写数据清理代码，加快分析速度-------------------------------------------------------------------------------------------------------
+debug(data_clean_for_ngs)
+hp_1 <- data_clean_for_ngs("E:/my_lab/MARC_bioinformatics/amplicon/result/2020-01-06 HP-1.tsv",
+                           sample_path = "E:/my_lab/MARC_bioinformatics/amplicon/result/sample_info/sample_info HP-1.xlsx")
+
+
+

@@ -6,13 +6,13 @@
 ###################################################
 
 #读取并计算污染情况--------------------------------------------------------------
-contamination_condition <- function(data_ori,cutoff = 99){
+contamination_condition <- function(data_ori, cutoff = 99){
   marker <- data_ori$Name[which(str_detect(data_ori$Name,"Map"))-1]
   contamination <- data.frame(index = marker,ratio =
                                 data_ori$Name[which(str_detect(data_ori$Name,"Map"))])
   contamination$ratio <- str_remove(contamination$ratio,"Map.*= ")
 
-  output <- contamination %>% filter(as.numeric(str_extract(ratio,"\\d*")) < cutoff)
+  output <- contamination %>% dplyr::filter(as.numeric(str_extract(ratio, "\\d*")) < cutoff)
   return(output)
 }
 
@@ -34,7 +34,7 @@ marc_group <- function(data_ori){   #该函数给文件中各个结果添加上�
     )
   }
   #做一些规整，调整一些数据类型
-  for_out %<>% filter(!is.na(marker))
+  for_out <- for_out %>% filter(!is.na(marker))
   for_out$NumReads <- round(as.numeric(for_out$NumReads))
   for_out$TPM <- round(as.numeric(for_out$TPM),1)
   for_out <- as_tibble(for_out)
@@ -60,9 +60,8 @@ marc_group <- function(data_ori){   #该函数给文件中各个结果添加上�
 
 #看每个sgRNA在总体中所占的丰度比例------------------------------------------------------
 percent_marc <- function(data_group, remove_grna_index = c(1,3), remove_gene = "Cd47"){
-  new_data_f <- data_group[0,]
-  new_data_f$percent <- 1
-  new_data_f$percent_remove_some_grna <- 1
+  k <- 1
+  temp_list <- vector("list", length(unique(data_group$marker)))
 
   for(i in unique(data_group$marker)){
     single_data_f <- data_group %>% filter(marker == i)
@@ -81,9 +80,10 @@ percent_marc <- function(data_group, remove_grna_index = c(1,3), remove_gene = "
     single_data_f$percent_remove_some_grna[str_detect(single_data_f$Name, remove_gene)] <- NA
 
     #将每个样品重新合并
-    new_data_f <- rbind(new_data_f, single_data_f)
+    temp_list[[k]] <- single_data_f
+    k <- k + 1
   }
-  new_data_f <- new_data_f %>% dplyr::select(-TPM)
+  new_data_f <- bind_rows(temp_list) %>% dplyr::select(-TPM)
 #  new_data_f$logFC <- NA
   new_data_f$marker <- factor(new_data_f$marker, levels = unique(new_data_f$marker))
   new_data_f$median_reads <- NA_real_
@@ -175,7 +175,7 @@ marc_DataClean_for_plot <- function(data_nor_logfc){
     }
 
   }
-  output <- rbind(sub_1329,sub_other) %>% arrange(marker, mouse_strain)
+  output <- rbind(sub_1329, sub_other) %>% arrange(marker, mouse_strain)
 
   return(output)
 }
@@ -195,7 +195,7 @@ data_clean_for_analysis <- function(data_for_plot, sample_path = "./sample_info.
 }
 
 #在后期使用双阳来给样品进行计算对照--------------------------------------------------------------------------
-gm_mean = function(x, na.rm = TRUE, zero_propagate = T){
+gm_mean <- function(x, na.rm = TRUE, zero_propagate = T){
   if(any(x < 0, na.rm = TRUE)){
     return(NaN)
   }
@@ -256,6 +256,9 @@ normalization_with_median <-
     }
 
     #开始循环对每个样本进行处理
+    #定义初始值
+    k <- 1
+    temp_list <- vector("list", length(unique(data$unique_num)))
     for(i in unique(data$unique_num)){
 
       single_data <- data %>% filter(unique_num == i)
@@ -288,11 +291,17 @@ normalization_with_median <-
         single_data$median_reads <- round(single_data$median_reads)
       }
 
-      new_data <- rbind(new_data, single_data)
+      temp_list[[k]] <- single_data
+      k <-  k +1
     }
+    new_data <- bind_rows(temp_list)
+
 
     #计算差异倍数
     control_data <- filter(new_data, cas == "no", !str_detect(organ,"thymus|heart."))
+    #定义初始值
+    k <- 1
+    temp_list <- vector("list", length(unique(data$unique_num)))
     #对每个数据进行计算
     for(i in unique(data$unique_num)){
       single_data <- new_data %>% filter(unique_num == i)
@@ -320,8 +329,11 @@ normalization_with_median <-
       single_data$control_reads <- control_read$value
       single_data$control_percent <- control_read$percentage
 
-      for_out <- rbind(for_out, single_data)
+      temp_list[[k]] <- single_data
+      k <-  k +1
     }
+    for_out <- bind_rows(temp_list)
+
     return(for_out)
   }
 
@@ -343,6 +355,9 @@ normalization_with_beside <-
     ratio_data <- data[0,]
     for_out <-  data[0,]
 
+    #定义初始值
+    k <- 1
+    temp_list <- vector("list", length(unique(data$unique_num)))
     for(i in unique(data$unique_num)){  #对每个样品挨个进行处理
       single_data <- data %>% filter(unique_num == i)
       #判断最后一个gRNA是否参与计算
@@ -357,12 +372,18 @@ normalization_with_beside <-
           median(single_data$NumReads[find_flanking_gRNA(n, single_data$order, flank_num, last)] + 1e-20)
 
       }
-      ratio_data <- rbind(ratio_data, single_data)
+      temp_list[[k]] <- single_data
+      k <-  k +1
     }
+    ratio_data <- bind_rows(temp_list)
+
 
     #计算差异倍数
     #抽出作为对照的数据
     control_data <- filter(ratio_data, cas == "no", !str_detect(organ,"thymus|heart."))
+    #定义初始值
+    k <- 1
+    temp_list <- vector("list", length(unique(data$unique_num)))
     #对每个数据进行计算
     for(i in unique(data$unique_num)){
       single_data <- ratio_data %>% filter(unique_num == i)
@@ -382,8 +403,10 @@ normalization_with_beside <-
         single_data$besides_ratio /
         control_ratio$value
 
-      for_out <- rbind(for_out, single_data)
+      temp_list[[k]] <- single_data
+      k <-  k +1
     }
+    for_out <- bind_rows(temp_list)
     return(for_out)
   }
 
