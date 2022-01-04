@@ -276,7 +276,7 @@ normalization_with_median <-
         names(for_median) <- unlist(single_data %>% filter(order != 1) %>% dplyr::select(Name))
       }
       #计算中位数的那个size factor
-      size_factor <- median(for_median / for_median_data$mean[match(names(for_median),for_median_data$Name)])
+      size_factor <- median(for_median / for_median_data$mean[match(names(for_median), for_median_data$Name)])
       #进行标准化
       if(size_factor > 0.01){
         single_data$median_reads <-

@@ -2,8 +2,8 @@
 #提取用于批次比较的样本
 extract_samples <- function(data_for_analysis, samples_info = NULL, unique_num_info = NULL){
   out_data <- data_for_analysis[0,]
-  out_data$numerator  <- NA
-  out_data$group <- NA
+  out_data$numerator  <- NA_character_
+  out_data$group <- NA_character_
 
   if(!is.null(samples_info)){
     unique_num_info <- data.frame(exp_index = 0, con_index = 0, group = 0)
@@ -126,8 +126,12 @@ get_unique_num_table <-
 
         unique_num_output <-
           rbind(unique_num_output,
-                find_sample_by_regex(single_mouse_data, search_table[i, 1], search_table[i, 2],
-                                     search_table[i, 3], limit = search_table[i, 4], except = search_table[i, 5]
+                find_sample_by_regex(single_mouse_data = single_mouse_data,
+                                     exp_regex = search_table[i, 1],
+                                     con_regex = search_table[i, 2],
+                                     group = search_table[i, 3],
+                                     limit = unlist(search_table[i, 4]),
+                                     except = unlist(search_table[i, 5])
                 )
           )
       }
@@ -148,16 +152,16 @@ calculation_of_threshold <- function(sub_data_f = sub_data_f, top = top, up_lfc 
     up_grna <- sub_data_f %>% dplyr::filter(lfc > up_lfc)
     down_grna <- sub_data_f %>% dplyr::filter(lfc < down_lfc)
 
-    up_grna %<>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
-    down_grna %<>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
+    up_grna <- up_grna %>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
+    down_grna <- down_grna %>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
   }else{
     up_grna <- sub_data_f %>% group_by(sample) %>% dplyr::filter(lfc >
                                                             quantile(lfc, 1-top, na.rm = T))
     down_grna <- sub_data_f %>% group_by(sample) %>% dplyr::filter(lfc <
                                                               quantile(lfc, top, na.rm = T))
 
-    up_grna %<>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
-    down_grna %<>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
+    up_grna <- up_grna %>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
+    down_grna <- down_grna %>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
   }
 
   return(list(up_grna, down_grna))
@@ -275,7 +279,7 @@ generate_output_matrix <- function(ana_data = ana_data, sub_data_f = sub_data_f,
       }
     }
   }
-  table_collected %<>% arrange(desc(sample_num), desc(abs(median_medianLFC)))
+  table_collected <- table_collected %>%  arrange(desc(sample_num), desc(abs(median_medianLFC)))
   return(table_collected)
 }
 
@@ -351,10 +355,10 @@ variational_grna_specified_sample <-
 #获取用于两两比较的数据的unique_num
 find_sample_by_regex <-
   function(single_mouse_data, exp_regex, con_regex, group, limit = NULL, except = NULL){
-    if(!is.null(limit)){
+    if (!is.null(limit)) {
       single_mouse_data <- single_mouse_data %>% dplyr::filter(str_detect(sample, limit))
     }
-    if(!is.null(except)){
+    if (!is.null(except)) {
       single_mouse_data <- single_mouse_data %>% dplyr::filter(!str_detect(sample, except))
     }
 
