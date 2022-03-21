@@ -161,7 +161,8 @@ marc_DataClean_for_plot <- function(data_nor_logfc){
 
     sub_other$gene <- str_remove(sub_other$gene, "-\\d+")
     sub_other$gene <- sub_other$Name %>% as.character()
-    sub_other$gene[str_detect(sub_other$Name,"NC5|Nc5") & sub_other$mouse_strain == 1913] <- "NC"
+    sub_other$gene[str_detect(sub_other$Name,"^NC\\d+$|nc5")] <- "NC"
+
     sub_other$gene[str_detect(sub_other$Name,"GFP")] <- "GFP"
 
     for(i in unique(sub_other$mouse_strain)){

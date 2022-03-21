@@ -1,49 +1,24 @@
 #加载所有函数 用于测试
 devtools::load_all()
 
-load("E:/my_lab/MARC_bioinformatics/amplicon/result/RData/HP7-64 all data.RData")
-rm(list = ls()[!ls() %in% c("data_for_analysis", "all_data")])
+load("D:/research/my_lab/MARC_bioinformatics/amplicon/result/RData/HP7-65 all data.RData")
+rm(list = ls()[!ls() %in% c("data_for_analysis")])
 
 
-
-
-immune_data <-
+mouse_list <-
   data_for_analysis %>%
-  dplyr::filter(mouse_index %in% c(8,264,391,385,212) &
-                  !unique_num %in% c() &   #517,1162,1029,1160,700,721,697,1156,851,852,954,959
-                  !str_detect(organ, "thymus|epididymis_|NA|brown_fat|gland|bone|muscle|ovary"),
-                str_detect(organ, "(?i)spleen.|ln.|blood")
-  ) %>%
-  group_by(sample, Name) %>%
-  dplyr::filter(order(unique_num, decreasing = T) == 1)
-compare_table <- tribble(
-  ~first_sample, ~second_sample, ~label, ~limit, ~except,
-  "B_cell", "CD\\d|treg", "B-T", NULL, NULL,
-  "8_e", "8_n", "cd8E-cd8N", NULL, NULL,
-  "8_cm", "8_n", "cd8CM-cd8N", NULL, NULL,
-  "4_e", "4_n", "cd4E-cd4n", NULL, NULL,
-  "8_e", "4_e", "cd8e-cd4e", NULL, NULL,
-  "8_n", "4_n", "cd8n-cd4n", NULL, NULL,
-  "treg", "4_n", "treg-cd4n", NULL, NULL,
-  "treg", "4_e", "treg-cd4e", NULL, NULL,
-  "blood", "B_cell", "blood-B", NULL, NULL,
-  "blood", "CD\\d|treg", "blood-T", NULL, NULL
-)
-compare_table <- as.data.frame(compare_table)
-info_1610 <- get_unique_num_table(as.data.frame(immune_data),
-                                  mouse_index_list = c(8,264,391,385,212),
-                                  strain = 1610, search_table = compare_table)
-tcell_1610 <-
-  variational_grna_specified_sample_batch(immune_data, remove_grna = "Cd47",
-                                          unique_num_info = info_1610,
-                                          up_lfc = 0.5, down_lfc = -0.5)
+  filter(mouse_strain == 1913, order == 1, cas == "yes", str_detect(sample, "(?i)nk"), batch == "HP-65") %>%
+  select(mouse_index) %>%
+  unique() %>%
+  unlist()
 
+unique_info <- get_unique_num_table(data_for_analysis, mouse_list, 1913)
 
+tcell <-
+  variational_grna_specified_sample_batch(data_for_analysis, remove_grna = "Cd47",
+                                          unique_num_info = unique_info,
+                                          up_lfc = 0.7, down_lfc = -0.7)
 
-# 重写数据清理代码，加快分析速度-------------------------------------------------------------------------------------------------------
-debug(data_clean_for_ngs)
-hp_1 <- data_clean_for_ngs("E:/my_lab/MARC_bioinformatics/amplicon/result/2020-01-06 HP-1.tsv",
-                           sample_path = "E:/my_lab/MARC_bioinformatics/amplicon/result/sample_info/sample_info HP-1.xlsx")
-
-
-
+hp_65 <-
+  data_clean_for_ngs("D:/research/my_lab/MARC_bioinformatics/amplicon/result/2022-02-06 HP-65.tsv",
+                     sample_path = "D:/research/my_lab/MARC_bioinformatics/amplicon/result/sample_info/sample_info HP-65.xlsx")

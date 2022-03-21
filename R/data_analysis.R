@@ -108,7 +108,11 @@ get_unique_num_table <-
           #nk中tnf高表达与低表达之间比较
           "(?i)tnf_(p|hi)", "(?i)tnf_(n|lo)", "NK_TNF_P-N", "(?i)NK", NULL,
           #nk中pd1阳性与阴性之间比较
-          "(?i)pd.?1_(p|hi)", "(?i)pd.?1_(n|lo)", "NK_pd-1P-N", "(?i)NK", NULL
+          "(?i)pd.?1_(p|hi)", "(?i)pd.?1_(n|lo)", "NK_pd-1P-N", "(?i)NK", NULL,
+          #nk是否在肿瘤中之间比较
+          "(?i)(?<=tumor.{0,200}?)nk|nk(?=.{0,200}?(tumor))",
+          "(?i)(?<!tumor.{0,200}?)nk(?!.{0,200}?tumor)",
+          "NK_tumor-periphery", "(?i)NK", "(?i)pd.?1|cd107a|tnf_"
         )
       search_table[4] <- as.character(search_table[[4]])
       search_table[5] <- as.character(search_table[[5]])
