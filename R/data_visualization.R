@@ -178,10 +178,10 @@ marc_logfc_inturn <-
             scale_y_continuous(breaks = break_y, labels = break_y) +
             ylab("FC") +
             theme_classic() +
-            scale_fill_manual(values = c("#FF1493","#FFA54F","#7e8aa2",
-                                         "white","#436EEE","#00BFFF"),
-                              limits = c("Polr2a","Kpnb1","Cd19","Cd45","Tp53","Pten"), #修改图例顺序
-                              labels = c("Polr2a","Kpnb1","Cd19","Cd45","Tp53","Pten")) +
+            scale_fill_manual(values =
+                                c(Polr2a = "#FF1493", Kpnb1 = "#FFA54F",
+                                  Cd19 = "#b5b5b6", Cd45 = "white",
+                                  Trp53 = "#436EEE", Pten = "#00BFFF")) +
             #               scale_y_continuous(limits = c()) +
             theme(axis.title.x = element_blank(),
                   axis.text.x = element_blank(),

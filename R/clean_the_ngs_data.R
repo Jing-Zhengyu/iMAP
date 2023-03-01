@@ -412,6 +412,68 @@ normalization_with_beside <-
   }
 
 
+# 添加一个新型的实用性和可靠性更强的利用周边数据的标准化方式----------------------------------------------------------------------------
+new_normalization_with_beside <-
+  function(data, flank_num = 4){
+
+    ratio_data <- data[0,]
+    for_out <-  data[0,]
+
+    #定义初始值
+    k <- 1
+    temp_list <- vector("list", length(unique(data$unique_num)))
+    for(i in unique(data$unique_num)){  #对每个样品挨个进行处理
+      single_data <- data %>% filter(unique_num == i)
+      #判断最后一个gRNA是否参与计算
+      if(unique(single_data$mouse_strain) %in% c(1287,1329)){
+        last <- T
+      }else{
+        last <- F
+      }
+      #对所有的gRNA进行计算
+      for(n in 1:length(single_data$Name)){
+        single_data$besides_ratio[n] <- (single_data$NumReads[n] + 1e-20) /
+          median(single_data$NumReads[find_flanking_gRNA(n, single_data$order, flank_num, last)] + 1e-20)
+
+      }
+      temp_list[[k]] <- single_data
+      k <-  k +1
+    }
+    ratio_data <- bind_rows(temp_list)
+
+
+    #计算差异倍数
+    #抽出作为对照的数据
+    control_data <- filter(ratio_data, cas == "no", !str_detect(organ,"thymus|heart."))
+    #定义初始值
+    k <- 1
+    temp_list <- vector("list", length(unique(data$unique_num)))
+    #对每个数据进行计算
+    for(i in unique(data$unique_num)){
+      single_data <- ratio_data %>% filter(unique_num == i)
+      #抽出作为对照的数据
+      sample_ratio <- single_data$percent[1] / single_data$percent[single_data$type == "control"][[1]]
+
+      control_ratio <- find_nearest_sample(control_data, single_data$mouse_strain[1],
+                                           first_nc_index = single_data$order[single_data$type == "control"][[1]],
+                                           sample_ratio = sample_ratio, "besides_ratio")
+
+      if(is.null(control_ratio)){
+        for_out <- rbind(for_out, single_data)
+        next
+      }
+      #用标准化后的值计算差异倍数
+      single_data$ratio_FC <-
+        single_data$besides_ratio /
+        control_ratio$value
+
+      temp_list[[k]] <- single_data
+      k <-  k +1
+    }
+    for_out <- bind_rows(temp_list)
+    return(for_out)
+  }
+
 #合并所有的数据,并输出到包外----------------------------------------------------------------------------------------
 #' Title
 #'
@@ -425,7 +487,7 @@ normalization <- function(all_data){
   timestart <- Sys.time()
   all_data <- normalization_with_median(all_data)
   print("Half done")
-  all_data <- normalization_with_beside(all_data)
+  all_data <- new_normalization_with_beside(all_data)
 
   timeend <- Sys.time()
   runningtime <- timeend-timestart
@@ -443,7 +505,7 @@ normalization <- function(all_data){
 #'
 #' @examples
 formalize_gene_name <- function(all_data, control){
-  control_data <- data.frame(mouse_index = str_extract(control, "\\w?\\d*"),
+  control_data <- data.frame(mouse_index = str_extract(control, "\\w{0,3}\\d*"),
                              mouse_strain = str_extract(control, "\\d+$"))
   #添加唯一识别符号
   times <- all_data %>% mutate(temp = paste0(all_data$marker,all_data$batch)) %>% group_by(temp) %>% dplyr::count(temp)
@@ -470,8 +532,8 @@ formalize_gene_name <- function(all_data, control){
   all_data$Name <- paste(toupper(substr(all_data$Name, 1, 1)), substr(all_data$Name, 2, 50), sep="")
   all_data$gene <- paste(toupper(substr(all_data$gene, 1, 1)), substr(all_data$gene, 2, 50), sep="")
 
-  all_data$organ <- str_replace(all_data$organ, "naïve", "naive")
-  all_data$sample <- str_replace(all_data$sample, "naïve", "naive")
+  all_data$organ <- str_replace(all_data$organ, "na[^\\d\\w]ve", "naive")
+  all_data$sample <- str_replace(all_data$sample, "na[^\\d\\w]ve", "naive")
 
   all_data$Name <- factor(all_data$Name, levels = unique(all_data$Name))
   return(all_data)

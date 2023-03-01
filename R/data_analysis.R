@@ -41,6 +41,34 @@ extract_samples <- function(data_for_analysis, samples_info = NULL, unique_num_i
   return(out_data)
 }
 
+
+#获取用于两两比较的数据的unique_num
+find_sample_by_regex <-
+  function(single_mouse_data, exp_regex, con_regex, group, limit = NULL, except = NULL){
+    if (!is.null(limit)) {
+      single_mouse_data <- single_mouse_data %>% dplyr::filter(str_detect(sample, limit))
+    }
+    if (!is.null(except)) {
+      single_mouse_data <- single_mouse_data %>% dplyr::filter(!str_detect(sample, except))
+    }
+
+    output <- data.frame(exp_index = 0, con_index = 0, group = 0)
+    exp <- unique(single_mouse_data$unique_num[str_detect(single_mouse_data$sample, exp_regex)])
+    con <- unique(single_mouse_data$unique_num[str_detect(single_mouse_data$sample, con_regex)])
+
+    #防止同一个老鼠有多组样本的情况
+    for(i in 1:length(exp)){
+      output[i, 1] <- exp[i]
+      if(length(con) == 1){
+        output[i, 2] <- con[1]
+      }else{
+        output[i, 2] <- con[i]
+      }
+      output[i, 3] <- group
+    }
+    return(output)
+  }
+
 #' Title
 #'
 #' @param data_for_analysis
@@ -159,10 +187,14 @@ calculation_of_threshold <- function(sub_data_f = sub_data_f, top = top, up_lfc 
     up_grna <- up_grna %>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
     down_grna <- down_grna %>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
   }else{
-    up_grna <- sub_data_f %>% group_by(sample) %>% dplyr::filter(lfc >
-                                                            quantile(lfc, 1-top, na.rm = T))
-    down_grna <- sub_data_f %>% group_by(sample) %>% dplyr::filter(lfc <
-                                                              quantile(lfc, top, na.rm = T))
+    up_grna <-
+      sub_data_f %>%
+      group_by(sample) %>%
+      dplyr::filter(lfc > quantile(lfc, 1-top, na.rm = T))
+    down_grna <-
+      sub_data_f %>%
+      group_by(sample) %>%
+      dplyr::filter(lfc < quantile(lfc, top, na.rm = T))
 
     up_grna <- up_grna %>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
     down_grna <- down_grna %>% mutate(for_out = paste0(sample, ": ", round(lfc,2)))
@@ -354,33 +386,6 @@ variational_grna_specified_sample <-
     }
 
     return(table_collected)
-  }
-
-#获取用于两两比较的数据的unique_num
-find_sample_by_regex <-
-  function(single_mouse_data, exp_regex, con_regex, group, limit = NULL, except = NULL){
-    if (!is.null(limit)) {
-      single_mouse_data <- single_mouse_data %>% dplyr::filter(str_detect(sample, limit))
-    }
-    if (!is.null(except)) {
-      single_mouse_data <- single_mouse_data %>% dplyr::filter(!str_detect(sample, except))
-    }
-
-    output <- data.frame(exp_index = 0, con_index = 0, group = 0)
-    exp <- unique(single_mouse_data$unique_num[str_detect(single_mouse_data$sample, exp_regex)])
-    con <- unique(single_mouse_data$unique_num[str_detect(single_mouse_data$sample, con_regex)])
-
-    #防止同一个老鼠有多组样本的情况
-    for(i in 1:length(exp)){
-      output[i, 1] <- exp[i]
-      if(length(con) == 1){
-        output[i, 2] <- con[1]
-      }else{
-        output[i, 2] <- con[i]
-      }
-      output[i, 3] <- group
-    }
-    return(output)
   }
 
 
